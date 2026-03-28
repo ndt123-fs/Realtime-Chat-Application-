@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -92,46 +93,20 @@ public class ChatController {
             );
         }
     }
-//    @MessageMapping("/join/{roomId}")
-//    public void joinRoom(@DestinationVariable String roomId,
-//                         Principal principal,
-//                         SimpMessageHeaderAccessor accessor) {
-//
-//        String username = principal.getName();
-//        String sessionId = accessor.getSessionId();
-//
-//        roomOnlineStore.addUser(roomId, username, sessionId);
-//
-//        // Broadcast cho tất cả biết user mới online
-//        simpMessagingTemplate.convertAndSend(
-//                "/topic/room/" + roomId + "/status",
-//                (Object) Map.of("user", username, "status", "ONLINE")
-//        );
-//
-//        // ✅ Gửi riêng cho user mới danh sách những ai đang online
-//        Set<String> onlineUsernames = roomOnlineStore.getOnlineUsernames(roomId);
-//        for (String onlineUser : onlineUsernames) {
-//            simpMessagingTemplate.convertAndSendToUser(
-//                    username,
-//                    "/queue/room/" + roomId + "/status",
-//                    Map.of("user", onlineUser, "status", "ONLINE")
-//            );
-//        }
-//    }
-//    @MessageMapping("/join/{roomId}")
-//    public void joinRoom(@DestinationVariable String roomId,
-//                         Principal principal,
-//                         SimpMessageHeaderAccessor accessor) {
-//
-//        String username = principal.getName();
-//        String sessionId = accessor.getSessionId();
-//
-//        roomOnlineStore.addUser(roomId, username, sessionId);
-//
-//        simpMessagingTemplate.convertAndSend(
-//                "/topic/room/" + roomId + "/status",
-//                (Object) Map.of("user", username, "status", "ONLINE")
-//        );
-//
-//    }
+    //call video
+    @MessageMapping("/video/{roomId}")
+    public void videoSignal(@DestinationVariable String roomId,
+                            @Payload Map<String,Object> signal,
+                            Principal principal){
+        String sender = principal.getName();
+        signal.put("sender",sender);
+        String target = (String) signal.get("target");
+        simpMessagingTemplate.convertAndSendToUser(
+                target,
+                "/queue/video/" + roomId,
+                signal
+        );
+    }
+
+
 }
